@@ -6,6 +6,11 @@ def XOR(a, b):
 def from_array_to_string(array):
     return ''.join(map(str, array))
 
+def binary_to_text(binary):
+    binary_values = [binary[i:i+8] for i in range(0, len(binary), 8)]
+    ascii_characters = [chr(int(bv, 2)) for bv in binary_values]
+    return ''.join(ascii_characters)
+
 def decode_CRC32(msg, CRC_32, tam):
     pos = tam
     dividend = msg[0:pos]
@@ -89,15 +94,16 @@ def start_server():
         payload, verif = decode_CRC32(msg, CRC_32, tam)
         if verif == 1:
             print("No se detectaron errores, el payload final es: ", from_array_to_string(payload))
+            print("Mensaje original: ", binary_to_text(from_array_to_string(payload)))
         elif verif == -1:
             print("Se detectaron errores, el mensaje final se descarta")
 
     elif algorithm == "Hamming":
         original_message, had_error = hamming_decode(noisy_message)
         if had_error:
-            print(f"Mensaje original: {original_message} con corrección de errores")
+            print(f"Mensaje original: {binary_to_text(original_message)} con corrección de errores")
         else:
-            print(f"Mensaje original: {original_message} sin errores detectados")
+            print(f"Mensaje original: {binary_to_text(original_message)} sin errores detectados")
 
     conn.close()
 

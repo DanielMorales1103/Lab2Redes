@@ -157,13 +157,19 @@ public class Emisores {
         Random rand = new Random();
         StringBuilder noisyMessage = new StringBuilder(message);
         for (int i = 0; i < noisyMessage.length(); i++) {
-            if (rand.nextDouble() < 0.01) { 
+            if (rand.nextDouble() < 0.001) { 
                 noisyMessage.setCharAt(i, noisyMessage.charAt(i) == '0' ? '1' : '0');
             }
         }
         return noisyMessage.toString();
     }
-    
+    private static String textToBinary(String text) {
+        StringBuilder binary = new StringBuilder();
+        for (char character : text.toCharArray()) {
+            binary.append(String.format("%8s", Integer.toBinaryString(character)).replaceAll(" ", "0"));
+        }
+        return binary.toString();
+    }
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         try {
@@ -181,10 +187,10 @@ public class Emisores {
             String encodedMessage = "";
             if (algorithmChoice == 1) {
                 algorithm = CRC32_ALGORITHM;
-                encodedMessage = encodeCRC32(message);
+                encodedMessage = encodeCRC32(textToBinary(message));
             } else if (algorithmChoice == 2) {
                 algorithm = HAMMING_ALGORITHM;
-                encodedMessage = encodeHamming(message);
+                encodedMessage = encodeHamming(textToBinary(message));
             } else {
                 System.out.println("Selección no válida.");
                 scanner.close();
@@ -193,7 +199,7 @@ public class Emisores {
 
             String noisyMessage = applyNoise(encodedMessage);
 
-            System.out.println("Mensaje enviado (con ruido si se aplicó): " + noisyMessage);
+            System.out.println("Mensaje enviado: " + noisyMessage);
 
             out.println(algorithm);
             out.println(noisyMessage);
