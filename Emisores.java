@@ -55,11 +55,9 @@ public class Emisores {
 
         int[] CRC_32 = { 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1,
                 1 };
-        // int [] CRC_32 = {1,0,0,1};
 
         int start = 0;
         int end = size;
-        // boolean finished = false;
         int[] xorResult = { 0 };
         int[] result = Arrays.copyOfRange(binaryData, 0, size);
         while (end < binaryData.length + 1) {
@@ -68,12 +66,9 @@ public class Emisores {
             int padding = index;
             start = end;
             end = end + padding;
-            // System.out.println(start);
-            // System.out.println(end);
             int[] temp1 = Arrays.copyOfRange(xorResult, index, xorResult.length);
             int[] temp2 = Arrays.copyOfRange(binaryData, start, end);
             result = mergeArrays(temp1, temp2);
-            // System.out.println("--------------------------------");
         }
         int[] appendedData = new int[xorResult.length + (binaryData.length - start)];
         int i = 0;
@@ -99,11 +94,11 @@ public class Emisores {
         }
         return true;
     }
+
     public static String HammingEncoder(String input) {
         int m = input.length();
         int r = 0;
 
-        // Encontrar el número de bits de paridad necesarios
         while (Math.pow(2, r) < m + r + 1) {
             r++;
         }
@@ -111,17 +106,15 @@ public class Emisores {
         int totalLength = m + r;
         char[] encoded = new char[totalLength];
 
-        // Colocar los bits de datos en sus posiciones correspondientes
         for (int i = 0, j = 0; i < totalLength; i++) {
             if (isPowerOfTwo(i + 1)) {
-                encoded[i] = '0'; // Temporales bits de paridad
+                encoded[i] = '0'; 
             } else {
                 encoded[i] = input.charAt(j);
                 j++;
             }
         }
 
-        // Calcular los bits de paridad
         for (int i = 0; i < r; i++) {
             int parityPosition = (int) Math.pow(2, i);
             encoded[parityPosition - 1] = calculateParity(encoded, parityPosition);
@@ -145,24 +138,42 @@ public class Emisores {
         }
         return (parity == 0) ? '0' : '1';
     }
+
     private static String encodeCRC32(String message) {
-        String encode = calculateCRC(message);
-        return encode;  
+        return calculateCRC(message);
     }
+
     private static String encodeHamming(String message) {
-        String encode = HammingEncoder(message);
-        return encode;  
+        return HammingEncoder(message);
     }
-    private static String applyNoise(String message) {
+
+    private static String applyNoise(String message, double errorProbability) {
+        System.out.println(message);
+        if (errorProbability < 0 || errorProbability > 1) {
+            throw new IllegalArgumentException("La probabilidad debe estar en el rango de 0 a 1");
+        }
         Random rand = new Random();
-        StringBuilder noisyMessage = new StringBuilder(message);
-        for (int i = 0; i < noisyMessage.length(); i++) {
-            if (rand.nextDouble() < 0.001) { 
-                noisyMessage.setCharAt(i, noisyMessage.charAt(i) == '0' ? '1' : '0');
+        // StringBuilder noisyMessage = new StringBuilder(message);
+        StringBuilder noisyMessage = new StringBuilder();
+
+        int counter = 0;
+        for (int i = 0; i < message.length(); i++) {
+            char bit = message.charAt(i);
+            char flippedBit = bit;
+
+            if (rand.nextDouble() < errorProbability) {
+                flippedBit = (bit == '0') ? '1' : '0';
+                counter += 1;
             }
+            noisyMessage.append(flippedBit);
+
+            // if (rand.nextDouble() < errorProbability) {
+            //     noisyMessage.setCharAt(i, noisyMessage.charAt(i) == '0' ? '1' : '0');
+            // }
         }
         return noisyMessage.toString();
     }
+
     private static String textToBinary(String text) {
         StringBuilder binary = new StringBuilder();
         for (char character : text.toCharArray()) {
@@ -170,6 +181,7 @@ public class Emisores {
         }
         return binary.toString();
     }
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         try {
@@ -187,7 +199,7 @@ public class Emisores {
             String encodedMessage = "";
             if (algorithmChoice == 1) {
                 algorithm = CRC32_ALGORITHM;
-                encodedMessage = encodeCRC32(textToBinary(message));
+                encodedMessage = encodeCRC32(message);
             } else if (algorithmChoice == 2) {
                 algorithm = HAMMING_ALGORITHM;
                 encodedMessage = encodeHamming(textToBinary(message));
@@ -197,7 +209,11 @@ public class Emisores {
                 return;
             }
 
-            String noisyMessage = applyNoise(encodedMessage);
+            System.out.println("Ingrese la probabilidad de error (entre 0 y 1)");
+            System.out.print("> ");
+            double errorProbability = Double.parseDouble(scanner.nextLine());
+
+            String noisyMessage = applyNoise(encodedMessage, errorProbability);
 
             System.out.println("Mensaje enviado: " + noisyMessage);
 
