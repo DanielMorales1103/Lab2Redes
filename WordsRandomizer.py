@@ -1,3 +1,5 @@
+# CODE USED TO GENERATE LIST OF WORDS FOR ANALYTICS
+
 import random
 
 def generar_palabra(longitud):

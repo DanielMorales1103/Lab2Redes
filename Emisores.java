@@ -171,9 +171,6 @@ public class Emisores {
             }
             noisyMessage.append(flippedBit);
 
-            // if (rand.nextDouble() < errorProbability) {
-            //     noisyMessage.setCharAt(i, noisyMessage.charAt(i) == '0' ? '1' : '0');
-            // }
         }
         return noisyMessage.toString();
     }
@@ -203,8 +200,8 @@ public class Emisores {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             List<String> words = readWordsFromFile("words.txt");
 
-            // System.out.println("Ingrese el mensaje a enviar:");
-            // String message = scanner.nextLine();
+            System.out.println("Ingrese el mensaje a enviar:");
+            String message = scanner.nextLine();
 
             System.out.println("Seleccione el algoritmo \n1. CRC32 \n2. Hamming");
             int algorithmChoice = scanner.nextInt();
@@ -216,37 +213,38 @@ public class Emisores {
             System.out.print("> ");
             double errorProbability = Double.parseDouble(scanner.nextLine());
 
-            // String encodedMessage = "";
-            for (String word : words) {
-                String binaryMessage = textToBinary(word);
-                String encodedMessage = (algorithmChoice == 1) ? encodeCRC32(binaryMessage) : encodeHamming(binaryMessage);
-                String noisyMessage = applyNoise(encodedMessage, errorProbability);
+            String encodedMessage = "";
+            // CODE FOR ANALYTICS - COMMENTED DUE TO TEST
+            // for (String word : words) {
+            //     String binaryMessage = textToBinary(word);
+            //     String encodedMessage = (algorithmChoice == 1) ? encodeCRC32(binaryMessage) : encodeHamming(binaryMessage);
+            //     String noisyMessage = applyNoise(encodedMessage, errorProbability);
 
-                // Opcional: Imprimir el mensaje para verificación
-                System.out.println("Mensaje enviado: " + noisyMessage);
+            //     // Opcional: Imprimir el mensaje para verificación
+            //     System.out.println("Mensaje enviado: " + noisyMessage);
 
-                // Enviar al servidor
-                out.println(algorithm);
-                out.println(noisyMessage);
-            }
-            // if (algorithmChoice == 1) {
-            //     algorithm = CRC32_ALGORITHM;
-            //     encodedMessage = encodeCRC32(message);
-            // } else if (algorithmChoice == 2) {
-            //     algorithm = HAMMING_ALGORITHM;
-            //     encodedMessage = encodeHamming(textToBinary(message));
-            // } else {
-            //     System.out.println("Selección no válida.");
-            //     scanner.close();
-            //     return;
+            //     // Enviar al servidor
+            //     out.println(algorithm);
+            //     out.println(noisyMessage);
             // }
+            if (algorithmChoice == 1) {
+                algorithm = CRC32_ALGORITHM;
+                encodedMessage = encodeCRC32(message);
+            } else if (algorithmChoice == 2) {
+                algorithm = HAMMING_ALGORITHM;
+                encodedMessage = encodeHamming(textToBinary(message));
+            } else {
+                System.out.println("Selección no válida.");
+                scanner.close();
+                return;
+            }
 
-            // String noisyMessage = applyNoise(encodedMessage, errorProbability);
+            String noisyMessage = applyNoise(encodedMessage, errorProbability);
 
-            // System.out.println("Mensaje enviado: " + noisyMessage);
+            System.out.println("Mensaje enviado: " + noisyMessage);
 
-            // out.println(algorithm);
-            // out.println(noisyMessage);
+            out.println(algorithm);
+            out.println(noisyMessage);
 
             socket.close();
         } catch (IOException e) {
