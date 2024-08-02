@@ -1,5 +1,8 @@
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import java.io.*;
 import java.net.*;
 import java.util.Random;
@@ -7,6 +10,7 @@ import java.util.Random;
 public class Emisores {
     private static final String CRC32_ALGORITHM = "CRC32";
     private static final String HAMMING_ALGORITHM = "Hamming";
+    private static final int NUM_ITERATIONS = 10000;
 
     public static int[] XOR(int[] a, int[] b) {
         int[] result = new int[a.length];
@@ -182,43 +186,67 @@ public class Emisores {
         return binary.toString();
     }
 
+     private static List<String> readWordsFromFile(String filename) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            return br.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         try {
             Socket socket = new Socket("localhost", 12345);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            List<String> words = readWordsFromFile("words.txt");
 
-            System.out.println("Ingrese el mensaje a enviar:");
-            String message = scanner.nextLine();
+            // System.out.println("Ingrese el mensaje a enviar:");
+            // String message = scanner.nextLine();
 
             System.out.println("Seleccione el algoritmo \n1. CRC32 \n2. Hamming");
             int algorithmChoice = scanner.nextInt();
             scanner.nextLine();  // Limpiar el buffer
 
             String algorithm = "";
-            String encodedMessage = "";
-            if (algorithmChoice == 1) {
-                algorithm = CRC32_ALGORITHM;
-                encodedMessage = encodeCRC32(message);
-            } else if (algorithmChoice == 2) {
-                algorithm = HAMMING_ALGORITHM;
-                encodedMessage = encodeHamming(textToBinary(message));
-            } else {
-                System.out.println("Selección no válida.");
-                scanner.close();
-                return;
-            }
 
             System.out.println("Ingrese la probabilidad de error (entre 0 y 1)");
             System.out.print("> ");
             double errorProbability = Double.parseDouble(scanner.nextLine());
 
-            String noisyMessage = applyNoise(encodedMessage, errorProbability);
+            // String encodedMessage = "";
+            for (String word : words) {
+                String binaryMessage = textToBinary(word);
+                String encodedMessage = (algorithmChoice == 1) ? encodeCRC32(binaryMessage) : encodeHamming(binaryMessage);
+                String noisyMessage = applyNoise(encodedMessage, errorProbability);
 
-            System.out.println("Mensaje enviado: " + noisyMessage);
+                // Opcional: Imprimir el mensaje para verificación
+                System.out.println("Mensaje enviado: " + noisyMessage);
 
-            out.println(algorithm);
-            out.println(noisyMessage);
+                // Enviar al servidor
+                out.println(algorithm);
+                out.println(noisyMessage);
+            }
+            // if (algorithmChoice == 1) {
+            //     algorithm = CRC32_ALGORITHM;
+            //     encodedMessage = encodeCRC32(message);
+            // } else if (algorithmChoice == 2) {
+            //     algorithm = HAMMING_ALGORITHM;
+            //     encodedMessage = encodeHamming(textToBinary(message));
+            // } else {
+            //     System.out.println("Selección no válida.");
+            //     scanner.close();
+            //     return;
+            // }
+
+            // String noisyMessage = applyNoise(encodedMessage, errorProbability);
+
+            // System.out.println("Mensaje enviado: " + noisyMessage);
+
+            // out.println(algorithm);
+            // out.println(noisyMessage);
 
             socket.close();
         } catch (IOException e) {
